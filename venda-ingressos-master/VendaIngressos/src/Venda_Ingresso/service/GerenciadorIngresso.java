@@ -42,7 +42,24 @@ public class GerenciadorIngresso {
         }
         return ingressos;
     }
-    
+
+    public ArrayList<Ingresso> getIngressosPorTipo(String tipo) throws SemRegistrosException {
+        ArrayList<Ingresso> ingressosFiltrados = new ArrayList<>();
+
+        for (Ingresso ingresso : ingressos) {
+            if (ingresso.getSetor().equalsIgnoreCase(tipo)) {
+                ingressosFiltrados.add(ingresso);
+            }
+        }
+
+        if (ingressosFiltrados.isEmpty()) {
+            throw new SemRegistrosException("Não há ingressos do tipo '" + tipo + "' para gerar relatório.");
+        }
+
+        return ingressosFiltrados;
+    }
+
+
 }
 
     

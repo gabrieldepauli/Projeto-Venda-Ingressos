@@ -1,11 +1,14 @@
 package Venda_Ingresso.ui;
 
+import Venda_Ingresso.errors.SemRegistrosException;
 import Venda_Ingresso.model.Ingresso;
 import Venda_Ingresso.service.GerenciadorIngresso;
 
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ItemEvent;
 
 class JanelaGrafica extends JDialog {
 
@@ -17,7 +20,8 @@ class JanelaGrafica extends JDialog {
     private JScrollPane scroll;
     private DefaultTableModel modelo;
 
-    private GerenciadorIngresso gerenciador;
+    private JComboBox<String> cbxSetores;
+    private String[] setores = {"Todos", "Amarelo", "Azul", "Branco", "Verde"};
 
     public JanelaGrafica() {
         modelo = criarModeloTabela();
@@ -36,7 +40,7 @@ class JanelaGrafica extends JDialog {
         return new DefaultTableModel() {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 0) return Boolean.class; // checkbox
+                if (columnIndex == 0) return Boolean.class;
                 return super.getColumnClass(columnIndex);
             }
 
@@ -71,6 +75,22 @@ class JanelaGrafica extends JDialog {
     }
 
     private void criarComponentes() {
+        painelFundo = new JPanel(new BorderLayout());
+
+        // Filtro de setor
+        cbxSetores = new JComboBox<>(setores);
+        cbxSetores.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                filtrarPorSetor((String) cbxSetores.getSelectedItem());
+            }
+        });
+        painelFundo.add(cbxSetores, BorderLayout.NORTH);
+
+        // Scroll da tabela
+        scroll = new JScrollPane(tabelaIngressos);
+        painelFundo.add(scroll, BorderLayout.CENTER);
+
+        // Botões
         painelBotoes = new JPanel();
 
         JButton btnVoltar = new JButton("Voltar");
@@ -84,25 +104,24 @@ class JanelaGrafica extends JDialog {
         btnExcluirSelecionados.addActionListener(e -> excluirSelecionados());
         painelBotoes.add(btnExcluirSelecionados);
 
-        scroll = new JScrollPane(tabelaIngressos);
-        painelFundo = new JPanel();
-        painelFundo.add(scroll);
-        painelFundo.add(painelBotoes);
-        add(painelFundo);
+        painelFundo.add(painelBotoes, BorderLayout.SOUTH);
 
+        add(painelFundo);
         setTitle("Ingressos");
         setVisible(true);
         pack();
-        setSize(600, 600);
+        setSize(700, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        filtrarPorSetor("Todos");
     }
 
     void carregarDados(DefaultTableModel modelo, ArrayList<Ingresso> ingressos) {
         modelo.setNumRows(0);
         ingressos.forEach(c -> {
             modelo.addRow(new Object[]{
-                    false, // checkbox desmarcado
+                    false,
                     c.getCodigo(),
                     c.getNome(),
                     c.getSetor(),
@@ -121,7 +140,7 @@ class JanelaGrafica extends JDialog {
         for (int i = rowCount - 1; i >= 0; i--) {
             Boolean selecionado = (Boolean) modelo.getValueAt(i, 0);
             if (selecionado != null && selecionado) {
-                int codigo = (int) modelo.getValueAt(i, 1); // código na coluna 1
+                int codigo = (int) modelo.getValueAt(i, 1);
                 codigosParaRemover.add(codigo);
                 modelo.removeRow(i);
             }
@@ -131,11 +150,32 @@ class JanelaGrafica extends JDialog {
         lista.removeIf(i -> codigosParaRemover.contains(i.getCodigo()));
     }
 
-    public GerenciadorIngresso getGerenciador() {
-        return gerenciador;
-    }
-
     public void imprimirRelatorio(ArrayList<Ingresso> ingressos) {
         carregarDados(modelo, ingressos);
+    }
+
+    private void filtrarPorSetor(String setorSelecionado) {
+        try {
+            ArrayList<Ingresso> todos = telaInicialPai.getGerenciador().getIngressos();
+            if (setorSelecionado.equalsIgnoreCase("Todos")) {
+                carregarDados(modelo, todos);
+                return;
+            }
+
+            ArrayList<Ingresso> filtrados = new ArrayList<>();
+            for (Ingresso ingresso : todos) {
+                if (ingresso.getSetor().equalsIgnoreCase(setorSelecionado)) {
+                    filtrados.add(ingresso);
+                }
+            }
+
+            if (filtrados.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Não há ingressos do setor '" + setorSelecionado + "'.", "Aviso", JOptionPane.INFORMATION_MESSAGE);
+            }
+
+            carregarDados(modelo, filtrados);
+        } catch (SemRegistrosException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Erro", JOptionPane.WARNING_MESSAGE);
+        }
     }
 }

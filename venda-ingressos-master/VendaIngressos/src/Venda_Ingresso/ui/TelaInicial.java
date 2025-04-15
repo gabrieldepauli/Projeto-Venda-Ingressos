@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Venda_Ingresso.ui;
 
 import Venda_Ingresso.errors.SemRegistrosException;
@@ -12,10 +7,6 @@ import Venda_Ingresso.service.GerenciadorIngresso;
 import javax.swing.*;
 import java.util.ArrayList;
 
-/**
- *
- * @author Junior
- */
 public class TelaInicial extends JDialog {
 
     private JPanel painelFundo;
@@ -24,7 +15,6 @@ public class TelaInicial extends JDialog {
     private JButton btnGerarRelatorio;
 
     GerenciadorIngresso gerenciador = new GerenciadorIngresso();
-
 
     public TelaInicial() {
         criarComponentesTela();
@@ -36,21 +26,22 @@ public class TelaInicial extends JDialog {
         btnSair = new JButton("Sair");
 
         btnComprar.addActionListener((e) -> {
-           JanelaCadastroIngresso janelaCadastroIngresso = new JanelaCadastroIngresso(this);
-           janelaCadastroIngresso.setVisible(true);
+            JanelaCadastroIngresso janelaCadastroIngresso = new JanelaCadastroIngresso(this);
+            janelaCadastroIngresso.setVisible(true);
         });
 
         btnGerarRelatorio.addActionListener((e) -> {
-            try{
+            try {
                 ArrayList<Ingresso> list = gerenciador.getIngressos();
+                if (list.isEmpty()) {
+                    throw new SemRegistrosException("Nenhum ingresso encontrado.");
+                }
                 setVisible(false);
                 JanelaGrafica janelaGrafica = new JanelaGrafica(this);
-                janelaGrafica.setVisible(true);
-                janelaGrafica.imprimirRelatorio(gerenciador.getIngressos());
-            }catch(SemRegistrosException ex){
+                janelaGrafica.setVisible(true); // carrega os dados internamente com o filtro
+            } catch (SemRegistrosException ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage(), "Relatório Indisponível", JOptionPane.WARNING_MESSAGE);
             }
-
         });
 
         btnSair.addActionListener(e -> {
@@ -63,12 +54,12 @@ public class TelaInicial extends JDialog {
         painelFundo.add(btnSair);
 
         add(painelFundo);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);// Só fecha a janela(Esconde). Não fecha a aplicação(EXIT_ON_CLOSE)
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         pack();
         setSize(300, 200);
         setVisible(true);
-     }
+    }
 
     public GerenciadorIngresso getGerenciador() {
         return gerenciador;
