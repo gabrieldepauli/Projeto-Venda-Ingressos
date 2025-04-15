@@ -14,26 +14,28 @@ import javax.swing.JPanel;
  *
  * @author Junior
  */
-public class TelaInicial extends JDialog {   
-    
+public class TelaInicial extends JDialog {
+
     private JPanel painelFundo;
     private JButton btnComprar;
+    private JButton btnSair;
     private JButton btnGerarRelatorio;
 
     GerenciadorIngresso gerenciador = new GerenciadorIngresso();
-   
-    
-    public TelaInicial() {    
-        criarComponentesTela();  
+
+
+    public TelaInicial() {
+        criarComponentesTela();
     }
-    
+
     private void criarComponentesTela() {
         btnComprar = new JButton("Comprar Ingresso");
         btnGerarRelatorio = new JButton("Gerar Relatório");
-        
-        btnComprar.addActionListener((e) -> {           
+        btnSair = new JButton("Sair");
+
+        btnComprar.addActionListener((e) -> {
            JanelaCadastroIngresso janelaCadastroIngresso = new JanelaCadastroIngresso(this);
-           janelaCadastroIngresso.setVisible(true); 
+           janelaCadastroIngresso.setVisible(true);
         });
 
         btnGerarRelatorio.addActionListener((e) -> {
@@ -42,11 +44,16 @@ public class TelaInicial extends JDialog {
             janelaGrafica.setVisible(true);
             janelaGrafica.imprimirRelatorio(gerenciador.getIngressos());
         });
-        
+
+        btnSair.addActionListener(e -> {
+            System.exit(0);
+        });
+
         painelFundo = new JPanel();
         painelFundo.add(btnComprar);
         painelFundo.add(btnGerarRelatorio);
-        
+        painelFundo.add(btnSair);
+
         add(painelFundo);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);// Só fecha a janela(Esconde). Não fecha a aplicação(EXIT_ON_CLOSE)
         setLocationRelativeTo(null);
