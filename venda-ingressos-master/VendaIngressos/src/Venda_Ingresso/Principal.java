@@ -5,6 +5,8 @@
  */
 package Venda_Ingresso;
 
+import Venda_Ingresso.ui.TelaInicial;
+
 /**
  *
  * @author Junior

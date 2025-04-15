@@ -3,7 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Venda_Ingresso;
+package Venda_Ingresso.ui;
+
+import Venda_Ingresso.errors.DadosInvalidosException;
+import Venda_Ingresso.model.Ingresso;
+import Venda_Ingresso.service.GerenciadorIngresso;
 
 import java.awt.*;
 import java.awt.event.ItemEvent;
@@ -11,7 +15,6 @@ import java.awt.event.ItemListener;
 import java.time.LocalDateTime;
 import javax.swing.*;
 
-import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -117,78 +120,76 @@ public class JanelaCadastroIngresso extends JDialog {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setVisible(true);
     }
-    
-    private void comprarIngresso() {        
-        Ingresso ingresso = new Ingresso();
-        double valorIngresso = 0.00;
-        
-        ingresso.setNome(txtNome.getText());          
-        
-        setor = cbxSetores.getSelectedItem().toString();
-        
-        // Em caso de alteracao, novo item eh adicionado ao atributo setor
-        cbxSetores.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED){   
-                    setor = cbxSetores.getSelectedItem().toString();                                     
-                }
-            }
-        });        
-        
-        ingresso.setSetor(setor);   
-        ingresso.setQuantidade(Integer.parseInt(txtQtde.getText())); 
-        
-        // Identifica valores dos ingressos
-        if (setor.equalsIgnoreCase("Amarelo")){
-            valorIngresso = 180.00;            
-        }else{
-            if (setor.equalsIgnoreCase("Azul")){
-                valorIngresso = 100.00;
-            }else{
-                if (setor.equalsIgnoreCase("Branco")){
+
+    private void comprarIngresso() {
+        try {
+            validarCampos();
+
+            Ingresso ingresso = new Ingresso();
+            double valorIngresso = 0.00;
+
+            ingresso.setNome(txtNome.getText());
+            setor = cbxSetores.getSelectedItem().toString();
+            ingresso.setSetor(setor);
+            ingresso.setQuantidade(Integer.parseInt(txtQtde.getText()));
+
+            // Cálculo do valor do ingresso por setor
+            switch (setor.toLowerCase()) {
+                case "amarelo":
+                    valorIngresso = 180.00;
+                    break;
+                case "azul":
+                    valorIngresso = 100.00;
+                    break;
+                case "branco":
                     valorIngresso = 60.00;
-                }else{
-                    if (setor.equalsIgnoreCase("Verde")){
-                        valorIngresso = 350.00;
-                    }
-                }
+                    break;
+                case "verde":
+                    valorIngresso = 350.00;
+                    break;
             }
-        }
-        
-        tipoTorcedor = cbxTipoTorcedor.getSelectedItem().toString();
-        
-        // Em caso de alteracao, novo item eh adicionado ao atributo setor
-        cbxSetores.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED){   
-                    tipoTorcedor = cbxTipoTorcedor.getSelectedItem().toString();                                     
-                }
+
+            tipoTorcedor = cbxTipoTorcedor.getSelectedItem().toString();
+
+            if (tipoTorcedor.equalsIgnoreCase("Meia")) {
+                valorIngresso = valorIngresso / 2;
             }
-        });     
-        
-        // se for estudante ou aposentado, calcula meia entrada
-        if (tipoTorcedor.equalsIgnoreCase("Meia")){
-            valorIngresso = valorIngresso/2;
+
+            ingresso.setValor(valorIngresso);
+            ingresso.setValorTotal(valorIngresso * ingresso.getQuantidade());
+            ingresso.setDataHora(LocalDateTime.now());
+
+            if (gerenciador.comprarIngresso(ingresso)) {
+                limpar();
+                JOptionPane.showMessageDialog(null, "Ingresso comprado com sucesso!");
+            } else {
+                limpar();
+                JOptionPane.showMessageDialog(null, "Ingressos esgotados! Por favor, selecione outro setor.");
+            }
+
+        } catch (DadosInvalidosException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Comprar", JOptionPane.WARNING_MESSAGE);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "A quantidade deve ser um número inteiro válido.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
         }
-        
-        ingresso.setValor(valorIngresso);        
-        
-        // calcula o valor total
-        double valorTotal = ingresso.getValor() * ingresso.getQuantidade();
-        ingresso.setValorTotal(valorTotal);
-        
-        // captura a data e hora local da maquina
-        ingresso.setDataHora(LocalDateTime.now());            
-        
-        if (gerenciador.comprarIngresso(ingresso)) {            
-            limpar();
-            JOptionPane.showMessageDialog(null, "Ingresso comprado com sucesso!");
-        } else {
-            limpar();
-            JOptionPane.showMessageDialog(null, "Ingressos esgotados! Por favor, selecione outro setor.");
-        }  
-        
-    }               
+    }
+
+    private void validarCampos() throws DadosInvalidosException {
+        if (txtNome.getText().trim().isEmpty()) {
+            throw new DadosInvalidosException("O nome do comprador é obrigatório.");
+        }
+
+        if (txtQtde.getText().trim().isEmpty()) {
+            throw new DadosInvalidosException("Informe a quantidade de ingressos.");
+        }
+
+        try {
+            int quantidade = Integer.parseInt(txtQtde.getText());
+            if (quantidade <= 0 || quantidade > 10) {
+                throw new DadosInvalidosException("A quantidade deve ser maior que zero e até 10 ingressos.");
+            }
+        } catch (NumberFormatException e) {
+            throw new DadosInvalidosException("A quantidade deve ser um número inteiro válido.");
+        }
+    }
 }

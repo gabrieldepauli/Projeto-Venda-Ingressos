@@ -3,7 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Venda_Ingresso;
+package Venda_Ingresso.service;
+
+import Venda_Ingresso.errors.SemRegistrosException;
+import Venda_Ingresso.model.Ingresso;
 
 import java.util.ArrayList;
 
@@ -33,7 +36,10 @@ public class GerenciadorIngresso {
     }
     
     //Retorna os ingressos adquiridos
-    public ArrayList<Ingresso> getIngressos() {
+    public ArrayList<Ingresso> getIngressos() throws SemRegistrosException{
+        if(ingressos.isEmpty()){
+            throw new SemRegistrosException("Ainda não há registros para a geração de um relatório");
+        }
         return ingressos;
     }
     

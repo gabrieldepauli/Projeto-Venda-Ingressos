@@ -3,12 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Venda_Ingresso;
+package Venda_Ingresso.ui;
 
+import Venda_Ingresso.errors.SemRegistrosException;
+import Venda_Ingresso.model.Ingresso;
+import Venda_Ingresso.service.GerenciadorIngresso;
+
+import javax.swing.*;
 import java.util.ArrayList;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
 
 /**
  *
@@ -39,10 +41,16 @@ public class TelaInicial extends JDialog {
         });
 
         btnGerarRelatorio.addActionListener((e) -> {
-            setVisible(false);
-            JanelaGrafica janelaGrafica = new JanelaGrafica(this);
-            janelaGrafica.setVisible(true);
-            janelaGrafica.imprimirRelatorio(gerenciador.getIngressos());
+            try{
+                ArrayList<Ingresso> list = gerenciador.getIngressos();
+                setVisible(false);
+                JanelaGrafica janelaGrafica = new JanelaGrafica(this);
+                janelaGrafica.setVisible(true);
+                janelaGrafica.imprimirRelatorio(gerenciador.getIngressos());
+            }catch(SemRegistrosException ex){
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Relatório Indisponível", JOptionPane.WARNING_MESSAGE);
+            }
+
         });
 
         btnSair.addActionListener(e -> {

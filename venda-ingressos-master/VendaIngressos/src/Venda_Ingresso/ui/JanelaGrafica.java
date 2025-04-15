@@ -1,4 +1,7 @@
-package Venda_Ingresso;
+package Venda_Ingresso.ui;
+
+import Venda_Ingresso.model.Ingresso;
+import Venda_Ingresso.service.GerenciadorIngresso;
 
 import java.util.ArrayList;
 import javax.swing.*;
